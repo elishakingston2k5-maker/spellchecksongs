@@ -181,6 +181,32 @@ export default function AdminDashboard({ token, onLogout }) {
     }
   };
 
+  // Action: Export songs as JSON file
+  const handleExportJSON = async (alphabet) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/admin/export/${encodeURIComponent(alphabet)}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${alphabet}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
+        showNotification(`Successfully exported ${alphabet}.json`);
+      } else {
+        const data = await response.json();
+        showNotification(data.message || 'Export failed', 'error');
+      }
+    } catch (err) {
+      showNotification('Network error during export.', 'error');
+    }
+  };
+
   useEffect(() => {
     fetchDashboardData();
   }, [token]);
@@ -224,15 +250,39 @@ export default function AdminDashboard({ token, onLogout }) {
           <h2 className="text-2xl font-bold text-white">Admin Dashboard</h2>
           <p className="text-gray-400 text-xs mt-1">Review corrections and manage song verification state</p>
         </div>
-        <button
-          onClick={onLogout}
-          className="bg-navy-medium hover:bg-red-500/10 border border-navy-light hover:border-red-500/20 text-gray-400 hover:text-red-400 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 flex items-center gap-1.5"
-        >
-          <span>Sign Out</span>
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-          </svg>
-        </button>
+        <div className="flex items-center gap-2">
+          {/* Export அ JSON Button */}
+          <button
+            onClick={() => handleExportJSON('அ')}
+            className="bg-navy-medium hover:bg-gold-500/10 border border-navy-light hover:border-gold-500/20 text-gray-400 hover:text-gold-400 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Export அ.json</span>
+          </button>
+          
+          {/* Export ஆ JSON Button */}
+          <button
+            onClick={() => handleExportJSON('ஆ')}
+            className="bg-navy-medium hover:bg-gold-500/10 border border-navy-light hover:border-gold-500/20 text-gray-400 hover:text-gold-400 px-3.5 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 flex items-center gap-1.5"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            <span>Export ஆ.json</span>
+          </button>
+
+          <button
+            onClick={onLogout}
+            className="bg-navy-medium hover:bg-red-500/10 border border-navy-light hover:border-red-500/20 text-gray-400 hover:text-red-400 px-4 py-2.5 rounded-xl text-xs font-semibold transition-all duration-200 active:scale-95 flex items-center gap-1.5"
+          >
+            <span>Sign Out</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+          </button>
+        </div>
       </div>
 
       {/* Stats Counters Grid */}

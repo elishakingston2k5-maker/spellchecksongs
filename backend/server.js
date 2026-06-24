@@ -398,35 +398,46 @@ app.post('/api/errors/:id/approve', authenticateToken, requireAdmin, async (req,
     errorPin.status = 'approved';
     await errorPin.save();
 
-    // 4. Write all songs for this alphabet back to the local source JSON file in songsdb
-    const fs = require('fs');
-    const alphabet = song.alphabet;
-    const filePath = `/Users/elishakingston/Desktop/songsdb/${alphabet}.json`;
+    // 4. Try to write all songs for this alphabet back to the local source JSON file in songsdb
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const alphabet = song.alphabet;
+      const directoryPath = '/Users/elishakingston/Desktop/songsdb';
+      const filePath = path.join(directoryPath, `${alphabet}.json`);
 
-    // Fetch all songs for this alphabet from MongoDB sorted numerically
-    const allSongs = await Song.find({ alphabet })
-      .sort({ id: 1 })
-      .collation({ locale: 'en', numericOrdering: true });
+      // Only attempt write if directory exists (running locally)
+      if (fs.existsSync(directoryPath)) {
+        // Fetch all songs for this alphabet from MongoDB sorted numerically
+        const allSongs = await Song.find({ alphabet })
+          .sort({ id: 1 })
+          .collation({ locale: 'en', numericOrdering: true });
 
-    // Format songs back to original schema
-    const formattedSongs = allSongs.map(s => {
-      const originalId = s.id.split('_')[0];
-      return {
-        id: originalId,
-        title: s.title,
-        tanglishTitle: s.tanglishTitle,
-        slides: s.slides.map(sl => ({
-          ta: sl.ta,
-          tg: sl.tg
-        }))
-      };
-    });
+        // Format songs back to original schema
+        const formattedSongs = allSongs.map(s => {
+          const originalId = s.id.split('_')[0];
+          return {
+            id: originalId,
+            title: s.title,
+            tanglishTitle: s.tanglishTitle,
+            slides: s.slides.map(sl => ({
+              ta: sl.ta,
+              tg: sl.tg
+            }))
+          };
+        });
 
-    // Write back to Desktop/songsdb/
-    fs.writeFileSync(filePath, JSON.stringify(formattedSongs, null, 2), 'utf-8');
-    console.log(`Successfully auto-corrected song ${song.id} and updated source file: ${filePath}`);
+        // Write back to Desktop/songsdb/
+        fs.writeFileSync(filePath, JSON.stringify(formattedSongs, null, 2), 'utf-8');
+        console.log(`Successfully auto-corrected song ${song.id} and updated local source file: ${filePath}`);
+      } else {
+        console.log(`Local directory ${directoryPath} not found. Skipping local file write (expected when running in cloud).`);
+      }
+    } catch (writeErr) {
+      console.error('Failed to update local JSON file, but database change was saved:', writeErr);
+    }
 
-    res.json({ message: 'Error approved and applied to local file database successfully', errorPin });
+    res.json({ message: 'Error approved and applied to database successfully', errorPin });
   } catch (error) {
     console.error('Approve error error:', error);
     res.status(500).json({ message: 'Server error' });
@@ -448,6 +459,39 @@ app.post('/api/errors/:id/reject', authenticateToken, requireAdmin, async (req, 
   } catch (error) {
     console.error('Reject error error:', error);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Export songs for a specific alphabet as JSON (Admin only)
+app.get('/api/admin/export/:alphabet', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { alphabet } = req.params;
+    
+    // Fetch all songs for this alphabet from MongoDB sorted numerically
+    const allSongs = await Song.find({ alphabet })
+      .sort({ id: 1 })
+      .collation({ locale: 'en', numericOrdering: true });
+
+    // Format songs back to original schema
+    const formattedSongs = allSongs.map(s => {
+      const originalId = s.id.split('_')[0];
+      return {
+        id: originalId,
+        title: s.title,
+        tanglishTitle: s.tanglishTitle,
+        slides: s.slides.map(sl => ({
+          ta: sl.ta,
+          tg: sl.tg
+        }))
+      };
+    });
+
+    res.setHeader('Content-Type', 'application/json');
+    res.setHeader('Content-Disposition', `attachment; filename=${encodeURIComponent(alphabet)}.json`);
+    res.send(JSON.stringify(formattedSongs, null, 2));
+  } catch (error) {
+    console.error('Export error:', error);
+    res.status(500).json({ message: 'Server error during export' });
   }
 });
 
