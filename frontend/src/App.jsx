@@ -64,10 +64,15 @@ function PasscodeGate({ onAccessGranted }) {
 
 export default function App() {
   const [siteAccessGranted, setSiteAccessGranted] = useState(
-    localStorage.getItem('siteAccessGranted') === 'true'
+    sessionStorage.getItem('siteAccessGranted') === 'true'
   );
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+
+  // Clear any legacy localStorage site access
+  useEffect(() => {
+    localStorage.removeItem('siteAccessGranted');
+  }, []);
 
   // Checker State
   const [selectedAlphabet, setSelectedAlphabet] = useState('அ');
@@ -149,7 +154,7 @@ export default function App() {
 
   const handleAccessGranted = () => {
     setSiteAccessGranted(true);
-    localStorage.setItem('siteAccessGranted', 'true');
+    sessionStorage.setItem('siteAccessGranted', 'true');
   };
 
   // Step 1: Check site access gate
