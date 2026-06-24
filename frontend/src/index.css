@@ -1,0 +1,107 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-navy-darkest text-gray-100 antialiased selection:bg-gold-500 selection:text-navy-darkest;
+    font-family: 'Outfit', 'Inter', sans-serif;
+  }
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #080C14;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1F2937;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #D97706;
+}
+
+/* Glassmorphism components */
+.glass-panel {
+  background: rgba(17, 24, 37, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.glass-card {
+  background: rgba(31, 41, 55, 0.35);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+/* Animated hover glow effects */
+.hover-glow {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.hover-glow:hover {
+  border-color: rgba(217, 119, 6, 0.4);
+  box-shadow: 0 0 15px rgba(217, 119, 6, 0.12);
+  transform: translateY(-2px);
+}
+
+/* Word Pinpoint Highlights */
+.word-clickable {
+  transition: all 0.15s ease-in-out;
+  cursor: pointer;
+  display: inline-block;
+  padding: 2px 4px;
+  border-radius: 4px;
+}
+
+.word-clickable:hover {
+  background: rgba(217, 119, 6, 0.2);
+  color: #F59E0B;
+}
+
+.word-selected-tamil {
+  background: rgba(239, 68, 68, 0.25) !important;
+  color: #EF4444 !important;
+  border: 1px dashed rgba(239, 68, 68, 0.6);
+}
+
+.word-selected-tanglish {
+  background: rgba(139, 92, 246, 0.25) !important;
+  color: #A78BFA !important;
+  border: 1px dashed rgba(139, 92, 246, 0.6);
+}
+
+.word-has-error {
+  border-bottom: 2px wavy #EF4444;
+}
+
+.word-has-error-tg {
+  border-bottom: 2px wavy #8B5CF6;
+}
+
+/* Slide animation */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s forwards ease-out;
+}
