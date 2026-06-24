@@ -43,17 +43,6 @@ const requireAdmin = (req, res, next) => {
   next();
 };
 
-// --- DIAGNOSTIC ROUTE ---
-app.get('/api/diagnose-db', (req, res) => {
-  const mongoose = require('mongoose');
-  res.json({
-    readyState: mongoose.connection.readyState,
-    host: mongoose.connection.host,
-    name: mongoose.connection.name,
-    collections: Object.keys(mongoose.connection.collections)
-  });
-});
-
 // --- AUTH ROUTES ---
 
 // Login
