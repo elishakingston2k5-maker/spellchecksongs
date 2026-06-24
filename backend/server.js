@@ -8,7 +8,7 @@ const connectDB = require('./db');
 const { User, Song, ErrorPinpoint } = require('./models');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = process.env.PORT || 5000;
 const JWT_SECRET = process.env.JWT_SECRET || 'worshipflowsecret';
 
 // Connect to Database
@@ -486,6 +486,6 @@ app.get('/api/stats', authenticateToken, requireAdmin, async (req, res) => {
 
 
 // Start Server
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server running on port ${PORT}`);
 });
