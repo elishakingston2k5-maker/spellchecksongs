@@ -14,7 +14,7 @@ function PasscodeGate({ onAccessGranted }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (passcode.toLowerCase() === 'worshipflow') {
+    if (passcode === '615483') {
       onAccessGranted();
     } else {
       setError('Incorrect passcode. Please try again.');
@@ -55,8 +55,6 @@ function PasscodeGate({ onAccessGranted }) {
             Access Website
           </button>
         </form>
-
-        <p className="mt-6 text-[10px] text-gray-500 font-mono">Hint: worshipflow</p>
       </div>
     </div>
   );
