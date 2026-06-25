@@ -77,28 +77,10 @@ export default function AlphabetGrid({
           />
         </div>
 
-        <div className="flex items-center gap-3">
-          {/* Status Filter */}
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-gray-400 font-medium whitespace-nowrap">Status:</label>
-            <select
-              value={statusFilter}
-              onChange={(e) => onStatusFilterChange(e.target.value)}
-              className="bg-navy-dark border border-navy-light rounded-xl px-3 py-2.5 text-gray-300 text-xs focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 cursor-pointer"
-            >
-              <option value="">All Statuses</option>
-              <option value="pending">Pending Review</option>
-              <option value="in_review">In Review</option>
-              <option value="corrected">Corrected</option>
-              <option value="approved">Approved</option>
-            </select>
-          </div>
-
-          {/* Matches Count Display */}
-          <div className="bg-navy-darkest px-4 py-2.5 rounded-xl border border-navy-light/40 text-xs">
-            <span className="text-gray-400 mr-1.5 font-medium">Matches:</span>
-            <span className="text-gold-400 font-semibold font-mono">{totalCount} {totalCount === 1 ? 'song' : 'songs'}</span>
-          </div>
+        {/* Matches Count Display */}
+        <div className="bg-navy-darkest px-4 py-2.5 rounded-xl border border-navy-light/40 text-xs self-start sm:self-auto">
+          <span className="text-gray-400 mr-1.5 font-medium">Matches:</span>
+          <span className="text-gold-400 font-semibold font-mono">{totalCount} {totalCount === 1 ? 'song' : 'songs'}</span>
         </div>
       </div>
     </div>

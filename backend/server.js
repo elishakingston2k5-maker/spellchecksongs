@@ -163,7 +163,9 @@ app.get('/api/songs', authenticateToken, async (req, res) => {
     }
 
     // Filter by status if provided
-    if (status) {
+    if (status === 'completed') {
+      query.status = { $in: ['in_review', 'corrected', 'approved'] };
+    } else if (status) {
       query.status = status;
     }
 

@@ -85,6 +85,7 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
 
   const slides = song.slides || [];
   const currentSlide = slides[currentSlideIndex];
+  const isPending = song.status === 'pending';
 
   // Helper: split text by newline first, then by space into words
   const renderInteractiveText = (text, lang) => {
@@ -100,7 +101,7 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
             const isSelected = selectedWordKey === key;
             
             // Highlight style classes
-            let highlightClass = 'word-clickable';
+            let highlightClass = isPending ? 'word-clickable' : '';
             if (isSelected) {
               highlightClass = lang === 'Tamil' ? 'word-selected-tamil' : 'word-selected-tanglish';
             } else {
@@ -131,6 +132,7 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
   };
 
   const handleWordClick = (word, key, lang) => {
+    if (!isPending) return;
     setSelectedWordKey(key);
     setOriginalText(word);
     setLanguage(lang);
@@ -265,22 +267,35 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSaveProgress}
-            disabled={isSaving || isSubmitting}
-            className="bg-navy-medium hover:bg-navy-light/70 text-gray-300 hover:text-white border border-navy-light font-medium px-4 py-2.5 rounded-xl transition-all text-xs flex items-center gap-2 disabled:opacity-50 active:scale-95"
-          >
-            {isSaving ? 'Saving...' : 'Save Progress'}
-          </button>
-          <button
-            onClick={handleSubmitReview}
-            disabled={isSaving || isSubmitting}
-            className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-navy-darkest font-semibold px-5 py-2.5 rounded-xl transition-all text-xs shadow-md shadow-gold-500/5 hover:shadow-gold-500/15 disabled:opacity-50 active:scale-95"
-          >
-            {isSubmitting ? 'Submitting...' : 'Submit Review'}
-          </button>
-        </div>
+        {isPending ? (
+          <div className="flex items-center gap-3">
+            <button
+              onClick={handleSaveProgress}
+              disabled={isSaving || isSubmitting}
+              className="bg-navy-medium hover:bg-navy-light/70 text-gray-300 hover:text-white border border-navy-light font-medium px-4 py-2.5 rounded-xl transition-all text-xs flex items-center gap-2 disabled:opacity-50 active:scale-95"
+            >
+              {isSaving ? 'Saving...' : 'Save Progress'}
+            </button>
+            <button
+              onClick={handleSubmitReview}
+              disabled={isSaving || isSubmitting}
+              className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-navy-darkest font-semibold px-5 py-2.5 rounded-xl transition-all text-xs shadow-md shadow-gold-500/5 hover:shadow-gold-500/15 disabled:opacity-50 active:scale-95"
+            >
+              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Song State:</span>
+            <span className={`text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-xl border ${
+              song.status === 'in_review' ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' :
+              song.status === 'corrected' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+              'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+            }`}>
+              {song.status.replace('_', ' ')} (Read Only)
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Main Review Workspace */}
@@ -352,78 +367,92 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
           </div>
 
           {/* Error Pinpoint Form Panel */}
-          <div className="bg-navy-medium border border-navy-light/60 rounded-2xl p-6">
-            <h3 className="text-sm font-semibold text-gray-300 border-b border-navy-light/40 pb-3 mb-5">
-              Pinpoint Spelling Mistake
-            </h3>
+          {isPending ? (
+            <div className="bg-navy-medium border border-navy-light/60 rounded-2xl p-6">
+              <h3 className="text-sm font-semibold text-gray-300 border-b border-navy-light/40 pb-3 mb-5">
+                Pinpoint Spelling Mistake
+              </h3>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Original Text</label>
-                <input
-                  type="text"
-                  value={originalText}
-                  onChange={(e) => setOriginalText(e.target.value)}
-                  placeholder="Click a word above or type here"
-                  className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm"
-                />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Original Text</label>
+                  <input
+                    type="text"
+                    value={originalText}
+                    onChange={(e) => setOriginalText(e.target.value)}
+                    placeholder="Click a word above or type here"
+                    className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Suggested Correction</label>
+                  <input
+                    type="text"
+                    value={suggestedCorrection}
+                    onChange={(e) => setSuggestedCorrection(e.target.value)}
+                    placeholder="Type the corrected spelling"
+                    className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Language</label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm cursor-pointer"
+                  >
+                    <option value="Tamil">Tamil</option>
+                    <option value="Tanglish">Tanglish</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Mistake Type</label>
+                  <select
+                    value={mistakeType}
+                    onChange={(e) => setMistakeType(e.target.value)}
+                    className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm cursor-pointer"
+                  >
+                    {MISTAKE_TYPES.map((type) => (
+                      <option key={type} value={type}>{type}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="md:col-span-2">
+                  <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Comment (Optional)</label>
+                  <textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    rows={2}
+                    placeholder="Provide context or explanation for this spelling correction"
+                    className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm resize-none"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Suggested Correction</label>
-                <input
-                  type="text"
-                  value={suggestedCorrection}
-                  onChange={(e) => setSuggestedCorrection(e.target.value)}
-                  placeholder="Type the corrected spelling"
-                  className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm"
-                />
+              <button
+                onClick={handleAddError}
+                className="mt-5 w-full bg-navy-light hover:bg-gold-500 hover:text-navy-darkest text-gray-300 font-semibold py-3 px-4 rounded-xl border border-navy-light hover:border-gold-400 active:scale-[0.98] transition-all text-xs"
+              >
+                Add Error
+              </button>
+            </div>
+          ) : (
+            <div className="bg-navy-medium border border-navy-light/60 rounded-2xl p-6 flex items-center gap-4">
+              <div className="h-10 w-10 shrink-0 rounded-xl bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-400">
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
               </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Language</label>
-                <select
-                  value={language}
-                  onChange={(e) => setLanguage(e.target.value)}
-                  className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm cursor-pointer"
-                >
-                  <option value="Tamil">Tamil</option>
-                  <option value="Tanglish">Tanglish</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Mistake Type</label>
-                <select
-                  value={mistakeType}
-                  onChange={(e) => setMistakeType(e.target.value)}
-                  className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm cursor-pointer"
-                >
-                  {MISTAKE_TYPES.map((type) => (
-                    <option key={type} value={type}>{type}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div className="md:col-span-2">
-                <label className="block text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2">Comment (Optional)</label>
-                <textarea
-                  value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={2}
-                  placeholder="Provide context or explanation for this spelling correction"
-                  className="w-full bg-navy-dark border border-navy-light rounded-xl px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all text-sm resize-none"
-                />
+              <div className="text-xs space-y-0.5">
+                <span className="text-white font-bold block">Read-Only Archives</span>
+                <p className="text-gray-400 leading-relaxed">This song's checking has been completed. Tagging corrections or editing has been disabled.</p>
               </div>
             </div>
-
-            <button
-              onClick={handleAddError}
-              className="mt-5 w-full bg-navy-light hover:bg-gold-500 hover:text-navy-darkest text-gray-300 font-semibold py-3 px-4 rounded-xl border border-navy-light hover:border-gold-400 active:scale-[0.98] transition-all text-xs"
-            >
-              Add Error
-            </button>
-          </div>
+          )}
         </div>
 
         {/* Right Drawer Panel: List of currently tagged errors in this song */}
@@ -480,15 +509,17 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
                   </div>
 
                   {/* Delete pinpoint button */}
-                  <button
-                    onClick={() => handleDeleteError(idx)}
-                    className="absolute top-2.5 right-2.5 text-gray-500 hover:text-red-400 p-1 rounded hover:bg-navy-light transition-colors"
-                    title="Remove correction"
-                  >
-                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
+                  {isPending && (
+                    <button
+                      onClick={() => handleDeleteError(idx)}
+                      className="absolute top-2.5 right-2.5 text-gray-500 hover:text-red-400 p-1 rounded hover:bg-navy-light transition-colors"
+                      title="Remove correction"
+                    >
+                      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                      </svg>
+                    </button>
+                  )}
                 </div>
               ))}
             </div>

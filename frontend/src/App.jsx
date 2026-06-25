@@ -75,7 +75,7 @@ export default function App() {
   // Checker State
   const [selectedAlphabet, setSelectedAlphabet] = useState('அ');
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('pending');
   const [songs, setSongs] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [isLoadingSongs, setIsLoadingSongs] = useState(false);
@@ -227,12 +227,36 @@ export default function App() {
               </div>
             </div>
 
+            {/* Checker Tabs */}
+            <div className="flex border-b border-navy-light/60 gap-2">
+              <button
+                onClick={() => setStatusFilter('pending')}
+                className={`px-5 py-3 font-semibold text-xs uppercase tracking-wider border-b-2 transition-all ${
+                  statusFilter === 'pending'
+                    ? 'border-gold-500 text-gold-400 font-bold'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Pending Review
+              </button>
+              <button
+                onClick={() => setStatusFilter('completed')}
+                className={`px-5 py-3 font-semibold text-xs uppercase tracking-wider border-b-2 transition-all ${
+                  statusFilter === 'completed'
+                    ? 'border-gold-500 text-gold-400 font-bold'
+                    : 'border-transparent text-gray-500 hover:text-gray-300'
+                }`}
+              >
+                Corrected Songs
+              </button>
+            </div>
+
             <AlphabetGrid
               selectedAlphabet={selectedAlphabet}
               onSelectAlphabet={(char) => {
                 setSelectedAlphabet(char);
                 setSearchQuery('');
-                setStatusFilter('');
+                setStatusFilter('pending');
               }}
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
