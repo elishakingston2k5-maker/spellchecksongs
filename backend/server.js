@@ -320,6 +320,24 @@ app.post('/api/songs/:id/submit', authenticateToken, async (req, res) => {
   }
 });
 
+// Reopen a song back to pending status for further editing (Checker/Admin)
+app.post('/api/songs/:id/reopen', authenticateToken, async (req, res) => {
+  try {
+    const song = await Song.findOne({ id: req.params.id });
+    if (!song) {
+      return res.status(404).json({ message: 'Song not found' });
+    }
+
+    song.status = 'pending';
+    await song.save();
+
+    res.json({ message: 'Song reopened for review successfully', status: song.status });
+  } catch (error) {
+    console.error('Reopen song error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Update song status (Admin only)
 app.post('/api/songs/:id/status', authenticateToken, requireAdmin, async (req, res) => {
   const { status } = req.body;

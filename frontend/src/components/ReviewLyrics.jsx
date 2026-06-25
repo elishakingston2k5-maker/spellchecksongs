@@ -224,6 +224,30 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
     }
   };
 
+  // Action: Reopen song back to pending status
+  const handleReopenSong = async () => {
+    setIsSaving(true);
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/songs/${song.id}/reopen`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showNotification('Song reopened successfully. You can now edit and add corrections!');
+        setSong(prev => ({ ...prev, status: 'pending' }));
+      } else {
+        showNotification(data.message || 'Failed to reopen song.', 'error');
+      }
+    } catch (err) {
+      showNotification('Network error. Failed to reopen song.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Toast Notification */}
@@ -285,15 +309,29 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
             </button>
           </div>
         ) : (
-          <div className="flex items-center gap-2">
-            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Song State:</span>
-            <span className={`text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-xl border ${
-              song.status === 'in_review' ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' :
-              song.status === 'corrected' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
-              'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
-            }`}>
-              {song.status.replace('_', ' ')} (Read Only)
-            </span>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Song State:</span>
+              <span className={`text-[10px] uppercase font-bold tracking-wider px-3 py-1.5 rounded-xl border ${
+                song.status === 'in_review' ? 'bg-sky-500/10 text-sky-400 border-sky-500/20' :
+                song.status === 'corrected' ? 'bg-purple-500/10 text-purple-400 border-purple-500/20' :
+                'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+              }`}>
+                {song.status.replace('_', ' ')} (Read Only)
+              </span>
+            </div>
+            
+            <button
+              onClick={handleReopenSong}
+              disabled={isSaving}
+              className="bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/25 font-semibold px-3 py-1.5 rounded-xl transition-all text-xs active:scale-95 flex items-center gap-1.5 disabled:opacity-50"
+              title="Make this song editable again"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 4v5h.582m15.356 2A8.001 8.001 0 1121.21 8H17" />
+              </svg>
+              <span>Reopen Song</span>
+            </button>
           </div>
         )}
       </div>
