@@ -3,7 +3,7 @@ import { API_BASE_URL } from '../config';
 
 const ALPHABETS = ['All', 'அ', 'ஆ'];
 
-export default function AdminDashboard({ token, onLogout }) {
+export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }) {
   const [stats, setStats] = useState(null);
   const [recentErrors, setRecentErrors] = useState([]);
   const [songs, setSongs] = useState([]);
@@ -271,6 +271,23 @@ export default function AdminDashboard({ token, onLogout }) {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
             </svg>
             <span>Export ஆ.json</span>
+          </button>
+
+          {/* Theme Toggle */}
+          <button
+            onClick={onToggleTheme}
+            className="bg-navy-medium hover:bg-navy-light text-gray-400 hover:text-white p-2.5 rounded-xl border border-navy-light transition-all duration-200 active:scale-95 flex items-center justify-center shadow-lg"
+            title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          >
+            {theme === 'dark' ? (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+              </svg>
+            ) : (
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+              </svg>
+            )}
           </button>
 
           <button

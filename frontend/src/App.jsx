@@ -8,7 +8,7 @@ import './App.css';
 import { API_BASE_URL } from './config';
 
 // Portal Passcode Gate Component
-function PasscodeGate({ onAccessGranted }) {
+function PasscodeGate({ onAccessGranted, theme, onToggleTheme }) {
   const [passcode, setPasscode] = useState('');
   const [error, setError] = useState('');
 
@@ -23,6 +23,26 @@ function PasscodeGate({ onAccessGranted }) {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-navy-darkest px-4 relative overflow-hidden">
+      {/* Floating Theme Toggle */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          type="button"
+          onClick={onToggleTheme}
+          className="p-2.5 rounded-xl bg-navy-medium hover:bg-navy-light text-gray-400 hover:text-white border border-navy-light transition-all duration-200 active:scale-95 flex items-center justify-center shadow-lg"
+          title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+        >
+          {theme === 'dark' ? (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+            </svg>
+          )}
+        </button>
+      </div>
+
       {/* Decorative gradient glowing circles */}
       <div className="absolute top-1/3 left-1/4 w-96 h-96 bg-gold-500 opacity-[0.03] rounded-full filter blur-3xl pointer-events-none"></div>
       
@@ -61,11 +81,26 @@ function PasscodeGate({ onAccessGranted }) {
 }
 
 export default function App() {
+  const [theme, setTheme] = useState(localStorage.getItem('theme') || 'dark');
   const [siteAccessGranted, setSiteAccessGranted] = useState(
     sessionStorage.getItem('siteAccessGranted') === 'true'
   );
   const [token, setToken] = useState(localStorage.getItem('token') || '');
   const [user, setUser] = useState(JSON.parse(localStorage.getItem('user')) || null);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
 
   // Clear any legacy localStorage site access
   useEffect(() => {
@@ -157,12 +192,12 @@ export default function App() {
 
   // Step 1: Check site access gate
   if (!siteAccessGranted) {
-    return <PasscodeGate onAccessGranted={handleAccessGranted} />;
+    return <PasscodeGate onAccessGranted={handleAccessGranted} theme={theme} onToggleTheme={toggleTheme} />;
   }
 
   // Step 2: Check authentication
   if (!token || !user) {
-    return <Login onLoginSuccess={handleLoginSuccess} />;
+    return <Login onLoginSuccess={handleLoginSuccess} theme={theme} onToggleTheme={toggleTheme} />;
   }
 
   return (
@@ -180,17 +215,23 @@ export default function App() {
             </div>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="text-right hidden sm:block">
-              <span className="block text-xs font-semibold text-white">{user.username}</span>
-              <span className={`inline-block text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full border mt-0.5 ${
-                user.role === 'admin' 
-                  ? 'bg-red-500/10 text-red-400 border-red-500/20' 
-                  : 'bg-gold-500/10 text-gold-400 border-gold-500/20'
-              }`}>
-                {user.role}
-              </span>
-            </div>
+          <div className="flex items-center gap-2.5">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="bg-navy-light hover:bg-navy-light/80 text-gray-400 hover:text-white p-2 rounded-xl border border-navy-light transition-all duration-200 active:scale-95 flex items-center justify-center"
+              title={theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            >
+              {theme === 'dark' ? (
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707m0-12.728l.707.707m12.728 12.728l.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z" />
+                </svg>
+              ) : (
+                <svg className="w-4.5 h-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                </svg>
+              )}
+            </button>
 
             <button
               onClick={handleLogout}
@@ -208,7 +249,7 @@ export default function App() {
       {/* Main app panel wrapper */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {user.role === 'admin' ? (
-          <AdminDashboard token={token} onLogout={handleLogout} />
+          <AdminDashboard token={token} onLogout={handleLogout} theme={theme} onToggleTheme={toggleTheme} />
         ) : selectedSongId ? (
           <ReviewLyrics
             songId={selectedSongId}
