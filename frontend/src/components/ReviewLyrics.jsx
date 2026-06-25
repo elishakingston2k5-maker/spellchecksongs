@@ -303,9 +303,17 @@ export default function ReviewLyrics({ songId, onBackToList, token }) {
             <button
               onClick={handleSubmitReview}
               disabled={isSaving || isSubmitting}
-              className="bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-navy-darkest font-semibold px-5 py-2.5 rounded-xl transition-all text-xs shadow-md shadow-gold-500/5 hover:shadow-gold-500/15 disabled:opacity-50 active:scale-95"
+              className={`font-semibold px-5 py-2.5 rounded-xl transition-all text-xs shadow-md disabled:opacity-50 active:scale-95 ${
+                errors.length === 0
+                  ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 hover:from-emerald-400 hover:to-emerald-500 text-white shadow-emerald-500/5 hover:shadow-emerald-500/15'
+                  : 'bg-gradient-to-r from-gold-500 to-gold-600 hover:from-gold-400 hover:to-gold-500 text-navy-darkest shadow-gold-500/5 hover:shadow-gold-500/15'
+              }`}
             >
-              {isSubmitting ? 'Submitting...' : 'Submit Review'}
+              {isSubmitting 
+                ? 'Submitting...' 
+                : errors.length === 0 
+                  ? 'Complete (No Errors)' 
+                  : 'Submit Review'}
             </button>
           </div>
         ) : (

@@ -190,6 +190,36 @@ export default function App() {
     sessionStorage.setItem('siteAccessGranted', 'true');
   };
 
+  const [notification, setNotification] = useState(null);
+
+  const showNotification = (msg, type = 'success') => {
+    setNotification({ text: msg, type });
+    setTimeout(() => setNotification(null), 3000);
+  };
+
+  const handleMarkSongCompleted = async (songId) => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/songs/${songId}/submit`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ errors: [] })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showNotification('Song marked completed (no errors) successfully!');
+        fetchSongs(pagination.page);
+      } else {
+        showNotification(data.message || 'Failed to mark song completed.', 'error');
+      }
+    } catch (err) {
+      console.error('Error marking song completed:', err);
+      showNotification('Network error. Failed to mark song completed.', 'error');
+    }
+  };
+
   // Step 1: Check site access gate
   if (!siteAccessGranted) {
     return <PasscodeGate onAccessGranted={handleAccessGranted} theme={theme} onToggleTheme={toggleTheme} />;
@@ -202,6 +232,23 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-navy-darkest text-gray-100 flex flex-col font-sans">
+      {/* Toast Notification */}
+      {notification && (
+        <div className={`fixed bottom-6 right-6 px-5 py-3.5 rounded-xl border shadow-xl flex items-center gap-3 z-50 animate-slide-in ${
+          notification.type === 'error' 
+            ? 'bg-red-500/10 border-red-500/30 text-red-400' 
+            : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+        }`}>
+          <svg className="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            {notification.type === 'error' ? (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            ) : (
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            )}
+          </svg>
+          <span className="text-sm font-semibold">{notification.text}</span>
+        </div>
+      )}
       {/* Navbar header */}
       <header className="bg-navy-medium/60 border-b border-navy-light/50 sticky top-0 z-30 backdrop-blur-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
@@ -313,6 +360,7 @@ export default function App() {
               pagination={pagination}
               onPageChange={fetchSongs}
               onReviewSong={setSelectedSongId}
+              onMarkSongCompleted={handleMarkSongCompleted}
               isLoading={isLoadingSongs}
             />
           </div>

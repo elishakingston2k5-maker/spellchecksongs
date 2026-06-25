@@ -25,6 +25,7 @@ export default function SongList({
   pagination,
   onPageChange,
   onReviewSong,
+  onMarkSongCompleted,
   isLoading
 }) {
   const isAvailableAlphabet = ['அ', 'ஆ'].includes(selectedAlphabet);
@@ -105,19 +106,38 @@ export default function SongList({
                 )}
               </div>
 
-              <button
-                onClick={() => onReviewSong(song.id)}
-                className="bg-navy-light hover:bg-navy-light/80 hover:text-white border border-navy-light text-gray-300 font-medium px-4 py-2.5 rounded-xl transition-all text-xs shrink-0 flex items-center gap-1.5 active:scale-[0.97]"
-              >
-                <span>{song.status === 'pending' ? 'Review Lyrics' : 'View Lyrics'}</span>
-                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  {song.status === 'pending' ? (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
-                  ) : (
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                  )}
-                </svg>
-              </button>
+              <div className="flex flex-col sm:flex-row gap-2 shrink-0">
+                {song.status === 'pending' && onMarkSongCompleted && (
+                  <button
+                    onClick={() => {
+                      if (window.confirm(`Are you sure there are no errors in "${song.title}" and you want to mark it completed?`)) {
+                        onMarkSongCompleted(song.id);
+                      }
+                    }}
+                    className="bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 hover:text-emerald-300 border border-emerald-500/20 hover:border-emerald-500/40 font-semibold px-3 py-2.5 rounded-xl transition-all text-xs flex items-center gap-1.5 active:scale-[0.97]"
+                    title="Mark completed with no errors"
+                  >
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                    </svg>
+                    <span>Mark Clean</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => onReviewSong(song.id)}
+                  className="bg-navy-light hover:bg-navy-light/80 hover:text-white border border-navy-light text-gray-300 font-medium px-4 py-2.5 rounded-xl transition-all text-xs flex items-center gap-1.5 active:scale-[0.97]"
+                >
+                  <span>{song.status === 'pending' ? 'Review Lyrics' : 'View Lyrics'}</span>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    {song.status === 'pending' ? (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                    ) : (
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                    )}
+                  </svg>
+                </button>
+              </div>
             </div>
           );
         })}
