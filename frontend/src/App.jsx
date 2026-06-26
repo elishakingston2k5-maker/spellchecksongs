@@ -115,6 +115,30 @@ export default function App() {
   const [pagination, setPagination] = useState({ page: 1, pages: 1 });
   const [isLoadingSongs, setIsLoadingSongs] = useState(false);
   const [selectedSongId, setSelectedSongId] = useState(null);
+  const [globalStats, setGlobalStats] = useState(null);
+
+  const fetchGlobalStats = async () => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/stats`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setGlobalStats(data.stats);
+      }
+    } catch (err) {
+      console.error('Error fetching global stats:', err);
+    }
+  };
+
+  useEffect(() => {
+    if (token && user && user.role === 'checker') {
+      fetchGlobalStats();
+    }
+  }, [token, user, selectedSongId]);
 
   // Validate existing token on boot
   useEffect(() => {
@@ -211,6 +235,7 @@ export default function App() {
       if (response.ok) {
         showNotification('Song marked completed (no errors) successfully!');
         fetchSongs(pagination.page);
+        fetchGlobalStats();
       } else {
         showNotification(data.message || 'Failed to mark song completed.', 'error');
       }
@@ -229,6 +254,9 @@ export default function App() {
   if (!token || !user) {
     return <Login onLoginSuccess={handleLoginSuccess} theme={theme} onToggleTheme={toggleTheme} />;
   }
+
+  const correctedTotal = globalStats ? (globalStats.correctedSongs + globalStats.pendingReviews + globalStats.approvedSongs) : 0;
+  const progressPercent = globalStats && globalStats.totalSongs ? Math.round((correctedTotal / globalStats.totalSongs) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-navy-darkest text-gray-100 flex flex-col font-sans">
@@ -314,6 +342,38 @@ export default function App() {
                 <p className="text-gray-400 text-xs mt-1">Select Tamil alphabet and review lyrics line-by-line</p>
               </div>
             </div>
+
+            {globalStats && (
+              <div className="bg-navy-medium border border-navy-light/50 p-5 rounded-2xl space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-center gap-6">
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Total Database Songs</span>
+                      <div className="text-2xl font-bold text-white font-mono mt-0.5">{globalStats.totalSongs}</div>
+                    </div>
+                    <div className="h-8 w-px bg-navy-light/60 hidden sm:block"></div>
+                    <div>
+                      <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Corrected Songs</span>
+                      <div className="text-2xl font-bold text-emerald-400 font-mono mt-0.5">{correctedTotal}</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span className="text-xs font-semibold text-gray-400">Verification Progress</span>
+                    <span className="text-sm font-bold text-white bg-gold-500/10 px-2.5 py-1 rounded-lg border border-gold-500/20 font-mono">
+                      {progressPercent}%
+                    </span>
+                  </div>
+                </div>
+                
+                {/* Progress bar */}
+                <div className="h-2 w-full bg-navy-dark rounded-full overflow-hidden border border-navy-light/30">
+                  <div 
+                    className="h-full bg-gradient-to-r from-gold-600 to-gold-400 rounded-full transition-all duration-500 ease-out"
+                    style={{ width: `${progressPercent}%` }}
+                  ></div>
+                </div>
+              </div>
+            )}
 
             {/* Checker Tabs */}
             <div className="flex border-b border-navy-light/60 gap-2">

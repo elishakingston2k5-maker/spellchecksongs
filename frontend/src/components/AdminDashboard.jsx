@@ -304,31 +304,64 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
 
       {/* Stats Counters Grid */}
       {stats && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="bg-navy-medium border border-navy-light/50 p-5 rounded-2xl relative overflow-hidden group">
-            <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Total Database Songs</span>
-            <div className="text-3xl font-bold text-white mt-1 font-mono">{stats.totalSongs}</div>
-            <div className="absolute right-4 bottom-4 text-gray-800 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">Σ</div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-navy-medium border border-navy-light/50 p-5 rounded-2xl relative overflow-hidden group">
+              <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Total Database Songs</span>
+              <div className="text-3xl font-bold text-white mt-1 font-mono">{stats.totalSongs}</div>
+              <div className="absolute right-4 bottom-4 text-gray-800 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">Σ</div>
+            </div>
+
+            <div className="bg-navy-medium border border-sky-500/15 p-5 rounded-2xl relative overflow-hidden group">
+              <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Pending Review</span>
+              <div className="text-3xl font-bold text-sky-400 mt-1 font-mono">{stats.pendingReviews}</div>
+              <div className="absolute right-4 bottom-4 text-sky-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">⏱</div>
+            </div>
+
+            <div className="bg-navy-medium border border-purple-500/15 p-5 rounded-2xl relative overflow-hidden group">
+              <span className="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Corrected Songs</span>
+              <div className="text-3xl font-bold text-purple-400 mt-1 font-mono">{stats.correctedSongs}</div>
+              <div className="absolute right-4 bottom-4 text-purple-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">✍</div>
+            </div>
+
+            <div className="bg-navy-medium border border-emerald-500/15 p-5 rounded-2xl relative overflow-hidden group">
+              <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Approved & Verified</span>
+              <div className="text-3xl font-bold text-emerald-400 mt-1 font-mono">{stats.approvedSongs}</div>
+              <div className="absolute right-4 bottom-4 text-emerald-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">✓</div>
+            </div>
           </div>
 
-          <div className="bg-navy-medium border border-sky-500/15 p-5 rounded-2xl relative overflow-hidden group">
-            <span className="text-[10px] uppercase font-bold text-sky-400 tracking-wider">Pending Review</span>
-            <div className="text-3xl font-bold text-sky-400 mt-1 font-mono">{stats.pendingReviews}</div>
-            <div className="absolute right-4 bottom-4 text-sky-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">⏱</div>
+          <div className="bg-navy-medium border border-navy-light/50 p-5 rounded-2xl space-y-4 mt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-6">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-gray-500 tracking-wider">Total Database Songs</span>
+                  <div className="text-2xl font-bold text-white font-mono mt-0.5">{stats.totalSongs}</div>
+                </div>
+                <div className="h-8 w-px bg-navy-light/60 hidden sm:block"></div>
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Total Checked & Corrected</span>
+                  <div className="text-2xl font-bold text-emerald-400 font-mono mt-0.5">
+                    {stats.correctedSongs + stats.pendingReviews + stats.approvedSongs}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-semibold text-gray-400">Overall Verification Progress</span>
+                <span className="text-sm font-bold text-white bg-gold-500/10 px-2.5 py-1 rounded-lg border border-gold-500/20 font-mono">
+                  {stats.totalSongs ? Math.round(((stats.correctedSongs + stats.pendingReviews + stats.approvedSongs) / stats.totalSongs) * 100) : 0}%
+                </span>
+              </div>
+            </div>
+            
+            <div className="h-2 w-full bg-navy-dark rounded-full overflow-hidden border border-navy-light/30">
+              <div 
+                className="h-full bg-gradient-to-r from-gold-600 to-gold-400 rounded-full transition-all duration-500 ease-out"
+                style={{ width: `${stats.totalSongs ? Math.round(((stats.correctedSongs + stats.pendingReviews + stats.approvedSongs) / stats.totalSongs) * 100) : 0}%` }}
+              ></div>
+            </div>
           </div>
-
-          <div className="bg-navy-medium border border-purple-500/15 p-5 rounded-2xl relative overflow-hidden group">
-            <span className="text-[10px] uppercase font-bold text-purple-400 tracking-wider">Corrected Songs</span>
-            <div className="text-3xl font-bold text-purple-400 mt-1 font-mono">{stats.correctedSongs}</div>
-            <div className="absolute right-4 bottom-4 text-purple-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">✍</div>
-          </div>
-
-          <div className="bg-navy-medium border border-emerald-500/15 p-5 rounded-2xl relative overflow-hidden group">
-            <span className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">Approved & Verified</span>
-            <div className="text-3xl font-bold text-emerald-400 mt-1 font-mono">{stats.approvedSongs}</div>
-            <div className="absolute right-4 bottom-4 text-emerald-500/5 font-bold text-4xl select-none group-hover:scale-105 transition-transform duration-300">✓</div>
-          </div>
-        </div>
+        </>
       )}
 
       {/* Tabs Selector */}

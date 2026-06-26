@@ -515,32 +515,32 @@ app.get('/api/admin/export/:alphabet', authenticateToken, requireAdmin, async (r
   }
 });
 
-// Get admin dashboard stats
-app.get('/api/stats', authenticateToken, requireAdmin, async (req, res) => {
+// Get dashboard stats
+app.get('/api/stats', authenticateToken, async (req, res) => {
   try {
     const totalSongs = await Song.countDocuments({});
     const pendingReviews = await Song.countDocuments({ status: 'in_review' });
     const correctedSongs = await Song.countDocuments({ status: 'corrected' });
     const approvedSongs = await Song.countDocuments({ status: 'approved' });
 
-    // Recent errors (limit to 10)
-    const recentErrors = await ErrorPinpoint.find({})
-      .sort({ createdAt: -1 })
-      .limit(10);
-
-    // List of active checkers based on completed submissions or error creators
-    const checkers = await ErrorPinpoint.distinct('checkedBy');
-
-    res.json({
+    const responseData = {
       stats: {
         totalSongs,
         pendingReviews,
         correctedSongs,
         approvedSongs,
-      },
-      recentErrors,
-      checkers
-    });
+      }
+    };
+
+    // Only admins get list of recent errors and checkers list
+    if (req.user.role === 'admin') {
+      responseData.recentErrors = await ErrorPinpoint.find({})
+        .sort({ createdAt: -1 })
+        .limit(10);
+      responseData.checkers = await ErrorPinpoint.distinct('checkedBy');
+    }
+
+    res.json(responseData);
   } catch (error) {
     console.error('Get stats error:', error);
     res.status(500).json({ message: 'Server error' });
