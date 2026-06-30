@@ -636,7 +636,7 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
       {/* Song Review Details Modal */}
       {activeSong && (
         <div className="fixed inset-0 bg-navy-darkest/95 flex items-center justify-center p-4 z-40 overflow-y-auto animate-fade-in">
-          <div className="bg-navy-medium border border-navy-light max-w-4xl w-full rounded-2xl shadow-2xl p-6 relative flex flex-col md:flex-row gap-6 max-h-[90vh] overflow-y-auto md:overflow-visible">
+          <div className="bg-navy-medium border border-navy-light max-w-6xl w-full rounded-2xl shadow-2xl p-6 relative flex flex-col md:flex-row gap-6 max-h-[92vh] overflow-y-auto md:overflow-visible">
             {/* Modal close icon */}
             <button
               onClick={() => setActiveSong(null)}
@@ -648,23 +648,23 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
             </button>
 
             {/* Left Side: Song slides */}
-            <div className="flex-1 space-y-4 md:max-h-[75vh] md:overflow-y-auto pr-1">
+            <div className="flex-1 space-y-4 md:max-h-[80vh] md:overflow-y-auto pr-2">
               <div>
                 <span className="text-[10px] uppercase font-bold text-gold-400 tracking-wider">Reviewing Song</span>
-                <h3 className="text-xl font-bold text-white mt-0.5">{activeSong.title}</h3>
+                <h3 className="text-2xl font-bold text-white mt-0.5">{activeSong.title}</h3>
                 <p className="text-gray-400 text-xs">{activeSong.tanglishTitle} (ID: {activeSong.id})</p>
               </div>
 
               <div className="space-y-4 pt-2">
                 {activeSong.slides.map((slide, sIdx) => (
-                  <div key={sIdx} className="bg-navy-dark border border-navy-light/60 p-4 rounded-xl space-y-3">
-                    <span className="text-[9px] font-bold text-gray-500 uppercase tracking-widest font-mono">Slide {sIdx + 1}</span>
+                  <div key={sIdx} className="bg-navy-dark border border-navy-light/60 p-5 rounded-xl space-y-3">
+                    <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest font-mono">Slide {sIdx + 1}</span>
                     
                     <div className="space-y-2">
-                      <div className="text-sm font-semibold text-white leading-relaxed whitespace-pre-line">
+                      <div className="text-base sm:text-lg font-semibold text-white leading-relaxed whitespace-pre-line">
                         {slide.ta}
                       </div>
-                      <div className="text-xs text-gray-300 font-mono leading-relaxed pt-1.5 border-t border-navy-light/20 whitespace-pre-line">
+                      <div className="text-sm text-gray-300 font-mono leading-relaxed pt-1.5 border-t border-navy-light/20 whitespace-pre-line">
                         {slide.tg}
                       </div>
                     </div>
@@ -674,7 +674,7 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
             </div>
 
             {/* Right Side: Verification Controller */}
-            <div className="w-full md:w-[320px] bg-navy-dark border border-navy-light/70 p-4 rounded-xl flex flex-col justify-between gap-4 md:max-h-[75vh]">
+            <div className="w-full md:w-[360px] bg-navy-dark border border-navy-light/70 p-4 rounded-xl flex flex-col justify-between gap-4 md:max-h-[80vh]">
               <div className="space-y-4 overflow-y-auto pr-1">
                 <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider border-b border-navy-light/30 pb-2">
                   Reported Corrections ({songErrors.length})
@@ -734,16 +734,48 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
               <div className="border-t border-navy-light/30 pt-4 space-y-3 shrink-0">
                 <div>
                   <label className="block text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Set Overall Song Status</label>
-                  <select
-                    value={updatingSongStatus}
-                    onChange={(e) => handleUpdateSongStatus(e.target.value)}
-                    className="w-full bg-navy-medium border border-navy-light rounded-lg px-3 py-2 text-white text-xs focus:outline-none focus:border-gold-500 cursor-pointer"
-                  >
-                    <option value="pending">Pending</option>
-                    <option value="in_review">In Review</option>
-                    <option value="corrected">Corrected</option>
-                    <option value="approved">Approved & Verified</option>
-                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleUpdateSongStatus('pending')}
+                      className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center ${
+                        updatingSongStatus === 'pending'
+                          ? 'bg-amber-500/20 text-gold-400 border-gold-500/80 shadow-md ring-1 ring-gold-500/30'
+                          : 'bg-navy-medium hover:bg-navy-light/50 text-gray-400 border-navy-light/60 hover:text-white'
+                      }`}
+                    >
+                      Pending
+                    </button>
+                    <button
+                      onClick={() => handleUpdateSongStatus('in_review')}
+                      className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center ${
+                        updatingSongStatus === 'in_review'
+                          ? 'bg-sky-500/20 text-sky-400 border-sky-500/80 shadow-md ring-1 ring-sky-500/30'
+                          : 'bg-navy-medium hover:bg-navy-light/50 text-gray-400 border-navy-light/60 hover:text-white'
+                      }`}
+                    >
+                      In Review
+                    </button>
+                    <button
+                      onClick={() => handleUpdateSongStatus('corrected')}
+                      className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center ${
+                        updatingSongStatus === 'corrected'
+                          ? 'bg-purple-500/20 text-purple-400 border-purple-500/80 shadow-md ring-1 ring-purple-500/30'
+                          : 'bg-navy-medium hover:bg-navy-light/50 text-gray-400 border-navy-light/60 hover:text-white'
+                      }`}
+                    >
+                      Corrected
+                    </button>
+                    <button
+                      onClick={() => handleUpdateSongStatus('approved')}
+                      className={`px-2 py-2 rounded-xl text-[10px] font-bold border transition-all text-center ${
+                        updatingSongStatus === 'approved'
+                          ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/80 shadow-md ring-1 ring-emerald-500/30'
+                          : 'bg-navy-medium hover:bg-navy-light/50 text-gray-400 border-navy-light/60 hover:text-white'
+                      }`}
+                    >
+                      Approved & Verified
+                    </button>
+                  </div>
                 </div>
 
                 <button
