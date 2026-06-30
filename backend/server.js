@@ -482,6 +482,101 @@ app.post('/api/errors/:id/reject', authenticateToken, requireAdmin, async (req, 
   }
 });
 
+// Approve all pending error pinpoints for a song (Admin only)
+app.post('/api/songs/:id/approve-all-errors', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const song = await Song.findOne({ id: req.params.id });
+    if (!song) {
+      return res.status(404).json({ message: 'Song not found' });
+    }
+
+    // Find all pending errors for this song
+    const pendingErrors = await ErrorPinpoint.find({ songId: song.id, status: 'pending' });
+    if (pendingErrors.length === 0) {
+      return res.status(400).json({ message: 'No pending errors found for this song' });
+    }
+
+    // Apply each correction to the slides
+    for (const errorPin of pendingErrors) {
+      const slide = song.slides[errorPin.slideIndex];
+      if (slide) {
+        if (errorPin.language === 'Tamil') {
+          slide.ta = slide.ta.replace(errorPin.originalText, errorPin.suggestedCorrection).replace(/  +/g, ' ');
+        } else {
+          slide.tg = slide.tg.replace(errorPin.originalText, errorPin.suggestedCorrection).replace(/  +/g, ' ');
+        }
+      }
+      errorPin.status = 'approved';
+      await errorPin.save();
+    }
+
+    song.markModified('slides');
+    await song.save();
+
+    // Write back to Desktop/songsdb if exists
+    try {
+      const fs = require('fs');
+      const path = require('path');
+      const alphabet = song.alphabet;
+      const directoryPath = '/Users/elishakingston/Desktop/songsdb';
+      const filePath = path.join(directoryPath, `${alphabet}.json`);
+
+      if (fs.existsSync(directoryPath)) {
+        const allSongs = await Song.find({ alphabet })
+          .sort({ id: 1 })
+          .collation({ locale: 'en', numericOrdering: true });
+
+        const formattedSongs = allSongs.map(s => {
+          const originalId = s.id.split('_')[0];
+          return {
+            id: originalId,
+            title: s.title,
+            tanglishTitle: s.tanglishTitle,
+            slides: s.slides.map(sl => ({
+              ta: sl.ta,
+              tg: sl.tg
+            }))
+          };
+        });
+
+        fs.writeFileSync(filePath, JSON.stringify(formattedSongs, null, 2), 'utf-8');
+        console.log(`Successfully approved all errors for song ${song.id} and updated local source file.`);
+      }
+    } catch (writeErr) {
+      console.error('Failed to update local JSON file on approve-all, but DB changes saved:', writeErr);
+    }
+
+    res.json({ message: 'All pending errors approved and applied successfully' });
+  } catch (error) {
+    console.error('Approve all errors error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Reject all pending error pinpoints for a song (Admin only)
+app.post('/api/songs/:id/reject-all-errors', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const song = await Song.findOne({ id: req.params.id });
+    if (!song) {
+      return res.status(404).json({ message: 'Song not found' });
+    }
+
+    const result = await ErrorPinpoint.updateMany(
+      { songId: song.id, status: 'pending' },
+      { status: 'rejected' }
+    );
+
+    if (result.matchedCount === 0) {
+      return res.status(400).json({ message: 'No pending errors found for this song' });
+    }
+
+    res.json({ message: 'All pending errors rejected successfully' });
+  } catch (error) {
+    console.error('Reject all errors error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // Export songs for a specific alphabet as JSON (Admin only)
 app.get('/api/admin/export/:alphabet', authenticateToken, requireAdmin, async (req, res) => {
   try {

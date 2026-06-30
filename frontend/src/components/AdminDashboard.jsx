@@ -155,6 +155,52 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
     }
   };
 
+  // Action: Approve all pending errors for the active song
+  const handleApproveAllErrors = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/songs/${activeSong.id}/approve-all-errors`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showNotification('All pending corrections approved successfully.');
+        // Re-fetch song details to update the slide text on-screen & errors list
+        if (activeSong) {
+          handleOpenSongDetail(activeSong.id);
+        }
+        fetchDashboardData();
+      } else {
+        showNotification(data.message || 'Failed to approve all corrections', 'error');
+      }
+    } catch (err) {
+      showNotification('Network error.', 'error');
+    }
+  };
+
+  // Action: Reject all pending errors for the active song
+  const handleRejectAllErrors = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/songs/${activeSong.id}/reject-all-errors`, {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      const data = await response.json();
+      if (response.ok) {
+        showNotification('All pending corrections rejected successfully.');
+        // Re-fetch song details to update the slide text on-screen & errors list
+        if (activeSong) {
+          handleOpenSongDetail(activeSong.id);
+        }
+        fetchDashboardData();
+      } else {
+        showNotification(data.message || 'Failed to reject all corrections', 'error');
+      }
+    } catch (err) {
+      showNotification('Network error.', 'error');
+    }
+  };
+
   // Action: Update song status
   const handleUpdateSongStatus = async (newStatus) => {
     try {
@@ -679,6 +725,23 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
                 <h4 className="text-xs font-semibold text-gray-300 uppercase tracking-wider border-b border-navy-light/30 pb-2">
                   Reported Corrections ({songErrors.length})
                 </h4>
+
+                {songErrors.some(err => err.status === 'pending') && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleApproveAllErrors}
+                      className="bg-emerald-500/10 hover:bg-emerald-500 text-emerald-400 hover:text-navy-darkest border border-emerald-500/25 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all flex-1 text-center active:scale-95"
+                    >
+                      Approve All
+                    </button>
+                    <button
+                      onClick={handleRejectAllErrors}
+                      className="bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-navy-darkest border border-red-500/25 px-2.5 py-1.5 rounded-xl text-[10px] font-bold transition-all flex-1 text-center active:scale-95"
+                    >
+                      Reject All
+                    </button>
+                  </div>
+                )}
 
                 {songErrors.length === 0 ? (
                   <div className="text-center py-12 text-xs text-gray-600">
