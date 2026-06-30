@@ -386,6 +386,8 @@ app.get('/api/errors', authenticateToken, requireAdmin, async (req, res) => {
 
 // Approve an error pinpoint
 app.post('/api/errors/:id/approve', authenticateToken, requireAdmin, async (req, res) => {
+  const { suggestedCorrection } = req.body;
+
   try {
     const errorPin = await ErrorPinpoint.findById(req.params.id);
     if (!errorPin) {
@@ -394,6 +396,10 @@ app.post('/api/errors/:id/approve', authenticateToken, requireAdmin, async (req,
 
     if (errorPin.status === 'approved') {
       return res.status(400).json({ message: 'Error is already approved' });
+    }
+
+    if (suggestedCorrection !== undefined) {
+      errorPin.suggestedCorrection = suggestedCorrection;
     }
 
     // 1. Find the associated song in MongoDB
@@ -484,6 +490,8 @@ app.post('/api/errors/:id/reject', authenticateToken, requireAdmin, async (req, 
 
 // Approve all pending error pinpoints for a song (Admin only)
 app.post('/api/songs/:id/approve-all-errors', authenticateToken, requireAdmin, async (req, res) => {
+  const { corrections } = req.body;
+
   try {
     const song = await Song.findOne({ id: req.params.id });
     if (!song) {
@@ -498,6 +506,9 @@ app.post('/api/songs/:id/approve-all-errors', authenticateToken, requireAdmin, a
 
     // Apply each correction to the slides
     for (const errorPin of pendingErrors) {
+      if (corrections && corrections[errorPin._id] !== undefined) {
+        errorPin.suggestedCorrection = corrections[errorPin._id];
+      }
       const slide = song.slides[errorPin.slideIndex];
       if (slide) {
         if (errorPin.language === 'Tamil') {

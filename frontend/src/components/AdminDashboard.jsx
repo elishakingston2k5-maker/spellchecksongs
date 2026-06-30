@@ -107,19 +107,33 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
     }
   };
 
+  // Helper to handle admin inline modification of suggested corrections
+  const handleCorrectionChange = (errorId, newText) => {
+    setSongErrors(prev => prev.map(err => err._id === errorId ? { ...err, suggestedCorrection: newText } : err));
+    setRecentErrors(prev => prev.map(err => err._id === errorId ? { ...err, suggestedCorrection: newText } : err));
+  };
+
   // Action: Approve error
   const handleApproveError = async (errorId) => {
+    // Find the latest suggestedCorrection from state arrays
+    const currentErr = songErrors.find(e => e._id === errorId) || recentErrors.find(e => e._id === errorId);
+    const suggestedCorrection = currentErr ? currentErr.suggestedCorrection : '';
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/errors/${errorId}/approve`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ suggestedCorrection })
       });
       const data = await response.json();
       if (response.ok) {
         showNotification('Error report approved.');
         // Update local arrays
-        setSongErrors(prev => prev.map(err => err._id === errorId ? { ...err, status: 'approved' } : err));
-        setRecentErrors(prev => prev.map(err => err._id === errorId ? { ...err, status: 'approved' } : err));
+        setSongErrors(prev => prev.map(err => err._id === errorId ? { ...err, status: 'approved', suggestedCorrection } : err));
+        setRecentErrors(prev => prev.map(err => err._id === errorId ? { ...err, status: 'approved', suggestedCorrection } : err));
         fetchDashboardData();
         // Re-fetch song details to update the slide text on-screen
         if (activeSong) {
@@ -157,10 +171,22 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
 
   // Action: Approve all pending errors for the active song
   const handleApproveAllErrors = async () => {
+    // Collect corrections as a map of { errorId: suggestedCorrection }
+    const corrections = {};
+    songErrors.forEach(err => {
+      if (err.status === 'pending') {
+        corrections[err._id] = err.suggestedCorrection;
+      }
+    });
+
     try {
       const response = await fetch(`${API_BASE_URL}/api/songs/${activeSong.id}/approve-all-errors`, {
         method: 'POST',
-        headers: { 'Authorization': `Bearer ${token}` }
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ corrections })
       });
       const data = await response.json();
       if (response.ok) {
@@ -631,9 +657,22 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
                           <div className="flex items-center gap-1.5 flex-wrap">
                             <span className="text-red-400 line-through truncate max-w-[110px]">{err.originalText}</span>
                             <span className="text-gray-500">→</span>
-                            <span className="text-emerald-400 font-semibold truncate max-w-[110px]">
-                              {err.suggestedCorrection || '(delete)'}
-                            </span>
+                            {err.status === 'pending' ? (
+                              <input
+                                type="text"
+                                value={err.suggestedCorrection}
+                                onChange={(e) => {
+                                  const newVal = e.target.value;
+                                  setRecentErrors(prev => prev.map(item => item._id === err._id ? { ...item, suggestedCorrection: newVal } : item));
+                                }}
+                                className="bg-navy-dark border border-navy-light/60 rounded px-2 py-0.5 text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500 w-32"
+                                placeholder="(delete)"
+                              />
+                            ) : (
+                              <span className="text-emerald-400 font-semibold truncate max-w-[110px]">
+                                {err.suggestedCorrection || '(delete)'}
+                              </span>
+                            )}
                           </div>
                           {err.comment && <p className="text-[10px] text-gray-500 italic mt-0.5">"{err.comment}"</p>}
                         </td>
@@ -762,10 +801,20 @@ export default function AdminDashboard({ token, onLogout, theme, onToggleTheme }
                           </span>
                         </div>
 
-                        <div className="flex items-center gap-1 flex-wrap">
-                          <span className="text-red-400 line-through">{err.originalText}</span>
-                          <span>→</span>
-                          <span className="text-emerald-400 font-semibold">{err.suggestedCorrection || '(delete)'}</span>
+                        <div className="flex items-center gap-2 flex-wrap w-full">
+                          <span className="text-red-400 line-through shrink-0">{err.originalText}</span>
+                          <span className="text-gray-500 shrink-0">→</span>
+                          {err.status === 'pending' ? (
+                            <input
+                              type="text"
+                              value={err.suggestedCorrection}
+                              onChange={(e) => handleCorrectionChange(err._id, e.target.value)}
+                              className="bg-navy-dark border border-navy-light/65 rounded px-2 py-1 text-emerald-400 font-semibold text-xs focus:outline-none focus:border-emerald-500 flex-1 min-w-[80px]"
+                              placeholder="(delete)"
+                            />
+                          ) : (
+                            <span className="text-emerald-400 font-semibold">{err.suggestedCorrection || '(delete)'}</span>
+                          )}
                         </div>
 
                         <p className="text-[10px] text-gray-500">{err.mistakeType}</p>
